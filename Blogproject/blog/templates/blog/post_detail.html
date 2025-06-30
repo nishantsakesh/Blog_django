@@ -1,0 +1,46 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    <h1 class="mb-4">{{ post.title }}</h1>
+    <p class="text-muted">
+        By {{ post.author.username }} on {{ post.created_at|date:"F d, Y, h:i A" }}
+        {% if user.is_authenticated and user == post.author %}
+            <a href="{% url 'post_update' post.pk %}" class="ms-3 btn btn-sm btn-info text-white">Edit</a>
+            <a href="{% url 'post_delete' post.pk %}" class="btn btn-sm btn-danger">Delete</a>
+        {% endif %}
+    </p>
+    <div class="card mb-4 p-4 shadow-sm">
+        <p class="lead">{{ post.content }}</p>
+    </div>
+
+    <hr>
+    <h3>Comments ({{ post.comments.count }})</h3>
+    {% if user.is_authenticated %}
+        <div class="card p-4 mb-4">
+            <h4>Add a Comment</h4>
+            <form method="post" action="{% url 'post_detail' post.pk %}">
+                {% csrf_token %}
+                {{ comment_form.as_p }}
+                <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+            </form>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <a href="{% url 'login' %}?next={{ request.path }}">Login to leave a comment.</a>
+        </div>
+    {% endif %}
+
+    {% for comment in post.comments.all %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <p class="card-text">{{ comment.content }}</p>
+                <footer class="blockquote-footer">
+                    Commented by {{ comment.author.username }} on {{ comment.created_at|date:"M d, Y, H:i" }}
+                </footer>
+            </div>
+        </div>
+    {% empty %}
+        <p>No comments yet.</p>
+    {% endfor %}
+    <a href="{% url 'post_list' %}" class="btn btn-secondary mt-4">Back to Posts</a>
+{% endblock %}
